@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Financial Calculator</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #343a40;
+    }
+    .calculator-section {
+      margin-bottom: 40px;
+    }
+    .calculator-card {
+      background-color: goldenrod;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .calculator-section h3 {
+      color: black;
+      font-weight: 600;
+    }
+    .result-text {
+      color: #007bff;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div id="root" class="container mt-5"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script type="text/babel">
+    class FinancialCalculator extends React.Component {
+      constructor(props) {
+        super(props);
+        this.state = {
+          loanAmount: '',
+          interestRate: '',
+          loanTerm: '',
+          emi: '',
+          totalPayment: '',
+          depreciationAmount: '',
+          initialValue: '',
+          salvageValue: '',
+          usefulLife: '',
+          cashFlow: '',
+          cashInflows: '',
+          cashOutflows: '',
+          percentageCashFlow: '',
+          principalCI: '',
+          rateCI: '',
+          timeCI: '',
+          compoundInterest: ''
+        };
+      }
+
+      handleInputChange = (event) => {
+        const { name, value } = event.target;
+        this.setState({ [name]: value });
+      }
+
+      calculateEMI = () => {
+        const { loanAmount, interestRate, loanTerm } = this.state;
+        const monthlyInterestRate = interestRate / 1200;
+        const emi = (loanAmount * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, loanTerm)) / (Math.pow(1 + monthlyInterestRate, loanTerm) - 1);
+        this.setState({ emi: emi.toFixed(2) });
+      }
+
+      calculateDepreciation = () => {
+        const { initialValue, salvageValue, usefulLife } = this.state;
+        const depreciationAmount = (initialValue - salvageValue) / usefulLife;
+        this.setState({ depreciationAmount: depreciationAmount.toFixed(2) });
+      }
+
+      calculatePercentageCashFlow = () => {
+        const { cashInflows, cashOutflows } = this.state;
+        const percentageCashFlow = ((cashInflows - cashOutflows) / cashInflows) * 100;
+        this.setState({ percentageCashFlow: percentageCashFlow.toFixed(2) });
+      }
+
+      calculateCompoundInterest = () => {
+        const { principalCI, rateCI, timeCI } = this.state;
+        const compoundInterest = principalCI * Math.pow(1 + rateCI / 100, timeCI) - principalCI;
+        this.setState({ compoundInterest: compoundInterest.toFixed(2) });
+      }
+
+      render() {
+        return (
+          <div className="container mt-5">
+            <div className="row">
+              <div className="col-md-6">
+                <div className="calculator-card calculator-section">
+                  <h3>EMI Calculator</h3>
+                  <label htmlFor="loanAmount">Loan Amount:</label>
+                  <input type="number" id="loanAmount" className="form-control mb-3" name="loanAmount" value={this.state.loanAmount} onChange={this.handleInputChange} />
+                  <label htmlFor="interestRate">Interest Rate (%):</label>
+                  <input type="number" id="interestRate" className="form-control mb-3" name="interestRate" value={this.state.interestRate} onChange={this.handleInputChange} />
+                  <label htmlFor="loanTerm">Loan Term (months):</label>
+                  <input type="number" id="loanTerm" className="form-control mb-3" name="loanTerm" value={this.state.loanTerm} onChange={this.handleInputChange} />
+                  <button onClick={this.calculateEMI} className="btn btn-primary">Calculate EMI</button>
+                  <h5 className="mt-3">EMI: <span className="result-text">{this.state.emi}</span></h5>
+                </div>
+              </div>
+              <div className="col-md-6">
+                <div className="calculator-card calculator-section">
+                  <h3>Depreciation Analysis</h3>
+                  <label htmlFor="initialValue">Initial Value:</label>
+                  <input type="number" id="initialValue" className="form-control mb-3" name="initialValue" value={this.state.initialValue} onChange={this.handleInputChange} />
+                  <label htmlFor="salvageValue">Salvage Value:</label>
+                  <input type="number" id="salvageValue" className="form-control mb-3" name="salvageValue" value={this.state.salvageValue} onChange={this.handleInputChange} />
+                  <label htmlFor="usefulLife">Useful Life (years):</label>
+                  <input type="number" id="usefulLife" className="form-control mb-3" name="usefulLife" value={this.state.usefulLife} onChange={this.handleInputChange} />
+                  <button onClick={this.calculateDepreciation} className="btn btn-primary">Calculate Depreciation</button>
+                  <h5 className="mt-3">Depreciation Amount: <span className="result-text">{this.state.depreciationAmount}</span></h5>
+                </div>
+              </div>
+            </div>
+            <div className="row mt-5">
+              <div className="col-md-6">
+                <div className="calculator-card calculator-section">
+                  <h3>Cash Flow Analysis</h3>
+                  <label htmlFor="cashInflows">Cash Inflows:</label>
+                  <input type="number" id="cashInflows" className="form-control mb-3" name="cashInflows" value={this.state.cashInflows} onChange={this.handleInputChange} />
+                  <label htmlFor="cashOutflows">Cash Outflows:</label>
+                  <input type="number" id="cashOutflows" className="form-control mb-3" name="cashOutflows" value={this.state.cashOutflows} onChange={this.handleInputChange} />
+                  <button onClick={this.calculatePercentageCashFlow} className="btn btn-primary">Calculate Percentage Cash Flow</button>
+                  <h5 className="mt-3">Percentage Cash Flow: <span className="result-text">{this.state.percentageCashFlow}%</span></h5>
+                </div>
+              </div>
+              <div className="col-md-6">
+                <div className="calculator-card calculator-section">
+                  <h3>Compound Interest Calculator</h3>
+                  <label htmlFor="principalCI">Principal Amount:</label>
+                  <input type="number" id="principalCI" className="form-control mb-3" name="principalCI" value={this.state.principalCI} onChange={this.handleInputChange} />
+                  <label htmlFor="rateCI">Rate of Interest (%):</label>
+                  <input type="number" id="rateCI" className="form-control mb-3" name="rateCI" value={this.state.rateCI} onChange={this.handleInputChange} />
+                  <label htmlFor="timeCI">Time Period (years):</label>
+                  <input type="number" id="timeCI" className="form-control mb-3" name="timeCI" value={this.state.timeCI} onChange={this.handleInputChange} />
+                  <button onClick={this.calculateCompoundInterest} className="btn btn-primary">Calculate Compound Interest</button>
+                  <h5 className="mt-3">Compound Interest: <span className="result-text">{this.state.compoundInterest}</span></h5>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+    }
+
+    ReactDOM.render(<FinancialCalculator />, document.getElementById('root'));
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
